@@ -12,7 +12,7 @@ class fastDiff(object):
 
   '''
 
-  def __init__(self,y,thresh=1e-10,yshape=None,smoothOrder=1.0,axis=None):
+  def __init__(self,y=None,thresh=1e-10,yshape=None,smoothOrder=1.0,axis=None):
     '''
     load gridded dataset y  and yshape (in case y is flattened)
 
@@ -20,12 +20,13 @@ class fastDiff(object):
       method has some rounding issues so threshold as thresh
 
     '''
-    self.yshape = yshape or y.shape
+    self.yshape = yshape or ((y is not None) and y.shape) or None
     self.y = y
     self.axis = axis
     self.thresh = thresh
-    self.smoothOrder = smoothOrder # not used at present    
-    self.dctFilter = self.diffFilter()
+    self.smoothOrder = smoothOrder # not used at present 
+    if self.yshape is not None:   
+      self.dctFilter = self.diffFilter()
 
   def diff(self,y=None):
     '''
@@ -100,6 +101,7 @@ def main(argv):
   case1()
   case2()
   case3()
+  case4()
 
 def case1():
    '''
@@ -213,6 +215,65 @@ def case3():
   imgplot = plt.imshow(f,interpolation='nearest')
   plt.show()
   plt.savefig('images/case3.png')
+
+def case4():
+  '''
+  Defining J =  x^T D^T D x
+  so       J' = D^T D x
+ 
+  we use the class to generate cost function and cost function derivatives
+  for a differential operator
+  '''
+  from PIL import Image
+  import urllib2
+  import pylab as plt
+
+  url='https://upload.wikimedia.org/wikipedia/en/0/04/TCF_centre.jpg'
+
+  # 1D dataset
+  im = np.array(Image.open(urllib2.urlopen(url)).convert("L")).astype(float)[50]
+  im /= im.max()
+
+  x = im
+ 
+  # so J' = D^T D x
+ 
+  # calculate Dx explicitly
+  n = x.shape[0]
+  D = np.eye(n) - np.diag(np.ones(n),-1)[:n,:n]
+  D[0,0] = 0
+  D = np.matrix(D)
+  '''
+  so D.T * D is 
+     matrix([[ 1., -1.,  0., ...,  0.,  0.,  0.],
+             [-1.,  2., -1., ...,  0.,  0.,  0.],
+             [ 0., -1.,  2., ...,  0.,  0.,  0.],
+             ..., 
+             [ 0.,  0.,  0., ...,  2., -1.,  0.],
+             [ 0.,  0.,  0., ..., -1.,  2., -1.],
+             [ 0.,  0.,  0., ...,  0., -1.,  1.]])
+
+
+  which is the same as our DCT filter
+  '''
+ 
+  dtd = fastDiff(x,axis=(0,))
+  J_ = -dtd.diff()
+  J_slow = np.array((D.T * D) * np.matrix(x).T).flatten()
+  J = 0.5 * np.dot(x,J_)
+  Jslow = np.array(0.5 * np.matrix(x) * (D.T * D) * np.matrix(x).T)[0,0]
+
+  plt.figure(figsize=(10,4))
+  plt.title('J_d = %.4f (DCT) = %.4f (explicit)'%(J,Jslow))
+  plt.plot(x,'k-',label='x')
+  plt.plot(J_,'r-',label="J'(x) (DCT)")
+  plt.plot(J_slow,'g--',label="J'(x) (explicit)")
+
+  plt.legend(loc='best')
+  plt.show()
+  plt.savefig('images/case4.png')
+
+
 
   
 if __name__ == "__main__":
