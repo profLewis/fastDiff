@@ -2,7 +2,14 @@
 fast (DCT-based) differential
 
 Examples:
-  case 5: use the class in an optimisation
+  case 5: use the class in an optimisation.
+  
+  This involves:
+  
+      from PIL import Image
+      import urllib2
+
+    
   
   ![case 5](images/case5.png)
 
