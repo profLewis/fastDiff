@@ -12,7 +12,7 @@ class fastDiff(object):
 
   '''
 
-  def __init__(self,y=None,thresh=1e-10,yshape=None,smoothOrder=1.0,axis=None):
+  def __init__(self,y=None,gamma=1.0,thresh=1e-10,yshape=None,smoothOrder=1.0,axis=None):
     '''
     load gridded dataset y  and yshape (in case y is flattened)
 
@@ -20,6 +20,7 @@ class fastDiff(object):
       method has some rounding issues so threshold as thresh
 
     '''
+    self.gamma = gamma
     self.yshape = yshape or ((y is not None) and y.shape) or None
     self.y = y
     self.axis = axis
@@ -32,8 +33,8 @@ class fastDiff(object):
     '''
     differentiate y (or loaded y)
     '''
-    if y:
-      assert y.size is np.prod(self.yshape)
+    if (y is not None):
+      assert y.size == np.prod(self.yshape)
     else:
       y = self.y.reshape(self.yshape)
  
@@ -57,6 +58,16 @@ class fastDiff(object):
         return f(f(f(data,norm='ortho',type=2,axis=0)\
                          ,norm='ortho',type=2,axis=1)\
                          ,norm='ortho',type=2,axis=2)
+
+  def cost_der_cost(self,x):
+    '''
+    this is the magic function for use in optimisation
+    '''
+    J_ = -self.diff(y=x)
+    J = 0.5 * np.dot(x,J_)
+    return self.gamma*J,self.gamma*J_
+
+
 
   def diffFilter(self):
     '''
@@ -102,6 +113,7 @@ def main(argv):
   case2()
   case3()
   case4()
+  case5()
 
 def case1():
    '''
@@ -272,6 +284,88 @@ def case4():
   plt.legend(loc='best')
   plt.show()
   plt.savefig('images/case4.png')
+
+def cost_identity(x,xobs):
+  J_ = x - xobs
+  J =  0.5 * np.dot(J_,J_)
+  return J,J_
+
+def fun_dfun(x,xobs,diff):
+  J,J_ = cost_identity(x,xobs)
+  J1,J1_ = diff.cost_der_cost(x)
+  return J + J1,J_ + J1_
+
+def case5():
+  '''
+  Defining J =  x^T D^T D x
+  so       J' = D^T D x
+
+  we use the class to generate cost function and cost function derivatives
+  for a differential operator
+  '''
+  from PIL import Image
+  import urllib2
+  import pylab as plt
+
+  url='https://upload.wikimedia.org/wikipedia/en/0/04/TCF_centre.jpg'
+
+  # 1D dataset
+  im = np.array(Image.open(urllib2.urlopen(url)).convert("L")).astype(float)[50]
+  im /= im.max()
+
+  x = im
+
+
+  '''
+  so we have a dataset x
+
+  and constraints:
+
+
+  D x = 0 | gamma
+  x = xobs
+
+  from which we get:
+
+  J = (1/2) x^T D^T D x + (1/2) (x - xobs)^2
+
+  J' = D^T D x + (x - xobs)
+
+  J'' = D^T D + I
+
+  Here, we demonstrate how to use this class to form
+  the call needed in minimize() for the differential operator
+
+  1. define gamma
+  2. set up the operator
+  3. then J,J_ = diff.cost_der_cost(x)
+ 
+  '''
+  gamma = 10.
+
+  # set up the differential operator, with an example of x
+  # at this point
+  diff = fastDiff(x,axis=(0,),gamma=gamma)
+  # test the D cost function
+  J,J_ = diff.cost_der_cost(x)
+
+  # test combined 
+  J,J_ = fun_dfun(x,x,diff) 
+
+  from scipy.optimize import minimize
+
+  res = minimize(fun_dfun, x, jac=True, method='Newton-CG',\
+                options={'disp': True},\
+                args=(x,diff))
+
+  plt.figure(figsize=(10,4))
+  plt.title('cost = %.3f for gamma = %.2f'%(res.fun,gamma))
+  plt.plot(x,'k-',label='x')
+  plt.plot(res.x,'r-',label='optimised x')
+  plt.legend(loc='best')
+  plt.show()
+  plt.savefig('images/case5.png')
+
 
 
 
