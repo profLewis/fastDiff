@@ -13,3 +13,7 @@ Examples:
  case 3: colour image differentiation in one or more dimensions
  
 ![case 3](images/case3.png)
+
+ case 4: use to get J and J' for differential operator
+ 
+![case 4](images/case4.png)
