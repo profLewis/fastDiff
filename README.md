@@ -2,6 +2,10 @@
 fast (DCT-based) differential
 
 Examples:
+  case 5: use the class in an optimisation
+  
+  ![case 5](images/case5.png)
+
  case 1: show impulse response function
  
 ![case 1](images/case1.png)
