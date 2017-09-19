@@ -90,7 +90,7 @@ class fastDiff(object):
           fn[truncate:] = 0
       return fn
   
-   def Hfilter(self,a):
+  def Hfilter(self,a):
         '''
          DCT-II filter for Heaviside H(a)
         '''
@@ -111,7 +111,7 @@ class fastDiff(object):
         self.Hfilter_ = Lambda
         return (Lambda)
 
-    def Heaviside_prime(self,N,s,truncate=None):
+   def Heaviside_prime(self,N,s,truncate=None):
         l = np.arange(N)
         omega = np.pi*l/N
         fn = -np.sqrt(2./N)*np.cos(s*omega)
@@ -120,7 +120,7 @@ class fastDiff(object):
             fn[truncate:] = 0
         return fn
 
-    def Hfilter_prime(self,a):
+   def Hfilter_prime(self,a):
         '''
          DCT-II filter for Heaviside' H'(a) (impulse at a)
         '''
@@ -141,7 +141,7 @@ class fastDiff(object):
         self.Hfilter_prime_ = Lambda
         return (Lambda)
 
-    def sort_axis(self,axis,ndim,yshape):
+   def sort_axis(self,axis,ndim,yshape):
         if axis is None:
             axis = tuple(np.arange(ndim))
         axis = tuple(np.array(axis).flatten())
@@ -166,7 +166,7 @@ class fastDiff(object):
       Lambda = self.diffFilter()
       return (1./(1+gamma*Lambda))
 
-    def diffFilter(self):
+   def diffFilter(self):
       '''
        DCT-II filter for DT D
       '''
