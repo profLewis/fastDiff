@@ -78,93 +78,93 @@ class fastDiff(object):
     J = 0.5 * np.dot(x.flatten(),J_.flatten())
     return self.gamma*J,self.gamma*J_
 
-def Heaviside(self,N,s,truncate=None):
-    '''
-    Step function in frequency domain
-    '''
-    l = np.arange(N)
-    omega = np.pi*l/N
-    fn = -np.sqrt(2./N)*np.sin(s*omega)/(omega)
-    fn[0] = (N-s)/np.sqrt(N)
-    if truncate is not None:
-        fn[truncate:] = 0
-    return fn
-  
- def Hfilter(self,a):
+  def Heaviside(self,N,s,truncate=None):
       '''
-       DCT-II filter for Heaviside H(a)
+      Step function in frequency domain
       '''
-      yshape = self.yshape
-      axis = self.axis
-      ndim = len(yshape)
-
-      # sort axis
-      axis,Lambda = self.sort_axis(axis,ndim,yshape)
-
-      for c,i in enumerate(axis):
-          # create a 1 x d array (so e.g. [1,1] for a 2D case
-          siz0 = np.ones((1,ndim)).astype(int)[0]
-          siz0[i] = yshape[i]
-          N = yshape[i]
-          this = self.Heaviside(N,a).reshape(siz0)
-          Lambda = Lambda + this
-      self.Hfilter_ = Lambda
-      return (Lambda)
-
-  def Heaviside_prime(self,N,s,truncate=None):
       l = np.arange(N)
       omega = np.pi*l/N
-      fn = -np.sqrt(2./N)*np.cos(s*omega)
-      #fn[0] = (N-s)/np.sqrt(N)
+      fn = -np.sqrt(2./N)*np.sin(s*omega)/(omega)
+      fn[0] = (N-s)/np.sqrt(N)
       if truncate is not None:
           fn[truncate:] = 0
       return fn
+  
+   def Hfilter(self,a):
+        '''
+         DCT-II filter for Heaviside H(a)
+        '''
+        yshape = self.yshape
+        axis = self.axis
+        ndim = len(yshape)
 
-  def Hfilter_prime(self,a):
+        # sort axis
+        axis,Lambda = self.sort_axis(axis,ndim,yshape)
+
+        for c,i in enumerate(axis):
+            # create a 1 x d array (so e.g. [1,1] for a 2D case
+            siz0 = np.ones((1,ndim)).astype(int)[0]
+            siz0[i] = yshape[i]
+            N = yshape[i]
+            this = self.Heaviside(N,a).reshape(siz0)
+            Lambda = Lambda + this
+        self.Hfilter_ = Lambda
+        return (Lambda)
+
+    def Heaviside_prime(self,N,s,truncate=None):
+        l = np.arange(N)
+        omega = np.pi*l/N
+        fn = -np.sqrt(2./N)*np.cos(s*omega)
+        #fn[0] = (N-s)/np.sqrt(N)
+        if truncate is not None:
+            fn[truncate:] = 0
+        return fn
+
+    def Hfilter_prime(self,a):
+        '''
+         DCT-II filter for Heaviside' H'(a) (impulse at a)
+        '''
+        yshape = self.yshape
+        axis = self.axis
+        ndim = len(yshape)
+        #import pdb;pdb.set_trace()
+        # sort axis
+        axis,Lambda = self.sort_axis(axis,ndim,yshape)
+
+        for c,i in enumerate(axis):
+            # create a 1 x d array (so e.g. [1,1] for a 2D case
+            siz0 = np.ones((1,ndim)).astype(int)[0]
+            siz0[i] = yshape[i]
+            N = yshape[i]
+            this = Heaviside_prime(N,a).reshape(siz0)
+            Lambda = Lambda + this
+        self.Hfilter_prime_ = Lambda
+        return (Lambda)
+
+    def sort_axis(self,axis,ndim,yshape):
+        if axis is None:
+            axis = tuple(np.arange(ndim))
+        axis = tuple(np.array(axis).flatten())
+        # initialise Lambda
+        Lambda = np.zeros(yshape).astype(float)
+
+        # normalisation factor
+        naxis = []
+        for i in axis:
+            # correct for -ves
+            if i < 0:
+              i = i + len(yshape) + 1
+            naxis.append(i)
+        axis = tuple(naxis)
+        return axis,Lambda    
+
+   def smoothFilter(self,gamma=None):
       '''
-       DCT-II filter for Heaviside' H'(a) (impulse at a)
+       DCT-II filter for 1/(1 + gamma DT D)
       '''
-      yshape = self.yshape
-      axis = self.axis
-      ndim = len(yshape)
-      #import pdb;pdb.set_trace()
-      # sort axis
-      axis,Lambda = self.sort_axis(axis,ndim,yshape)
-
-      for c,i in enumerate(axis):
-          # create a 1 x d array (so e.g. [1,1] for a 2D case
-          siz0 = np.ones((1,ndim)).astype(int)[0]
-          siz0[i] = yshape[i]
-          N = yshape[i]
-          this = Heaviside_prime(N,a).reshape(siz0)
-          Lambda = Lambda + this
-      self.Hfilter_prime_ = Lambda
-      return (Lambda)
-
-  def sort_axis(self,axis,ndim,yshape):
-      if axis is None:
-          axis = tuple(np.arange(ndim))
-      axis = tuple(np.array(axis).flatten())
-      # initialise Lambda
-      Lambda = np.zeros(yshape).astype(float)
-
-      # normalisation factor
-      naxis = []
-      for i in axis:
-          # correct for -ves
-          if i < 0:
-            i = i + len(yshape) + 1
-          naxis.append(i)
-      axis = tuple(naxis)
-      return axis,Lambda    
-    
- def smoothFilter(self,gamma=None):
-    '''
-     DCT-II filter for 1/(1 + gamma DT D)
-    '''
-    gamma = gamma or self.gamma
-    Lambda = self.diffFilter()
-    return (1./(1+gamma*Lambda))
+      gamma = gamma or self.gamma
+      Lambda = self.diffFilter()
+      return (1./(1+gamma*Lambda))
 
     def diffFilter(self):
       '''
