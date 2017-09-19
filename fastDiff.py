@@ -288,23 +288,23 @@ def case3():
 
   a=fig.add_subplot(232)
   f = dtdy
-  b=plt.imshow((255*f/f.max()).astype(int),interpolation='nearest',cmap='gray')
+  b=plt.imshow((255*f/f.max()).astype(float),interpolation='nearest',cmap='gray')
   a.set_title('After')
 
   a=fig.add_subplot(233)
   f = dtdy1
-  plt.imshow((255*f/f.max()).astype(int),interpolation='nearest',cmap='gray')
+  plt.imshow((255*f/f.max()).astype(float),interpolation='nearest',cmap='gray')
   a.set_title('After: axis 0')
 
   a=fig.add_subplot(234)
   f = dtdy2
-  plt.imshow((255*f/f.max()).astype(int),interpolation='nearest',cmap='gray')
+  plt.imshow((255*f/f.max()).astype(float),interpolation='nearest',cmap='gray')
   a.set_title('After: axis 1')
 
   a=fig.add_subplot(236)
   a.set_title('negative DCT Filter')
   f = ((-(dtd.dctFilter)))
-  f = (255*f/f.max()).astype(int)
+  f = (255*f/f.max()).astype(float)
   imgplot = plt.imshow(f,interpolation='nearest')
   plt.show()
   plt.savefig('images/case3.png')
