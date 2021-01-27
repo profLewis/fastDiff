@@ -22,13 +22,13 @@ Examples:
  2. main code
   
         from PIL import Image
-        import urllib2
+        import urllib.request
         from fastDiff import fastDiff
         from scipy.optimize import minimize
 
         # pull a dataset and make it 1D for now
         url='https://upload.wikimedia.org/wikipedia/en/0/04/TCF_centre.jpg'
-        im = np.array(Image.open(urllib2.urlopen(url)).convert("L")).astype(float)[50]
+        im = np.array(Image.open(urllib.request.urlopen(url)).convert("L")).astype(float)[50]
         x = im/im.max()
       
         gamma = 10.
