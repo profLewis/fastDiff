@@ -220,12 +220,12 @@ def case1():
 def case2():
   # case 2 image
   from PIL import Image
-  import urllib2
+  import urllib.request
   import pylab as plt
 
   url='https://upload.wikimedia.org/wikipedia/en/0/04/TCF_centre.jpg'
 
-  im = np.array(Image.open(urllib2.urlopen(url)).convert("L")).astype(float)
+  im = np.array(Image.open(urllib.request.urlopen(url)).convert("L")).astype(float)
   im /= im.max()
  
   dtd = fastDiff(im,axis=(0,1))  
