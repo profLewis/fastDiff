@@ -1,0 +1,5 @@
+PIL
+urllib
+scipy
+numpy
+matplotlib
